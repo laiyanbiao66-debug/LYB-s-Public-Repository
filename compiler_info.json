@@ -1,0 +1,15 @@
+{
+  "device": {
+    "name": "local-machine",
+    "hasVisualStudioCode": true,
+    "canUseAsCompiler": true,
+    "compilerNote": "Visual Studio Code is installed and can be used as the editor/front end for compilation."
+  },
+  "buildEnvironment": {
+    "preferredCompiler": "MSVC cl.exe",
+    "tooling": [
+      "Visual Studio Code",
+      "Visual Studio Build Tools"
+    ]
+  }
+}

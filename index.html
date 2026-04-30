@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LYB Engine 2.0</title>
+    <style>
+        :root {
+            --bg: #040b16;
+            --bg-2: #071221;
+            --panel: rgba(6, 13, 26, 0.86);
+            --panel-2: rgba(10, 19, 34, 0.68);
+            --panel-3: rgba(12, 24, 42, 0.54);
+            --border: rgba(148, 163, 184, 0.16);
+            --border-strong: rgba(245, 158, 11, 0.46);
+            --text: #eff6ff;
+            --muted: #9fb4c9;
+            --muted-2: #60748a;
+            --accent: #f59e0b;
+            --accent-2: #38bdf8;
+            --danger: #fb7185;
+            --success: #34d399;
+            --window-gap: 0px;
+            --shell-radius: clamp(20px, 2vw, 32px);
+            --card-radius: clamp(20px, 1.8vw, 28px);
+            --section-gap: clamp(14px, 1.4vw, 24px);
+            --page-pad: clamp(18px, 2vw, 30px);
+            --title-size: clamp(1.6rem, 2.4vw, 2.35rem);
+            --copy-size: clamp(0.84rem, 0.88vw, 0.96rem);
+        }
+
+        * { box-sizing: border-box; }
+
+        html,
+        body,
+        #root {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 32%),
+                radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 24%),
+                linear-gradient(160deg, #02060e 0%, #07101d 45%, #050c17 100%);
+            color: var(--text);
+            font-size: clamp(14px, 0.78vw, 16px);
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        body::before {
+            width: 30vw;
+            height: 30vw;
+            min-width: 260px;
+            min-height: 260px;
+            top: -10vw;
+            right: -8vw;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.16), transparent 68%);
+        }
+
+        body::after {
+            width: 26vw;
+            height: 26vw;
+            min-width: 220px;
+            min-height: 220px;
+            bottom: -8vw;
+            left: -6vw;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.14), transparent 70%);
+        }
+
+        #root {
+            height: 100%;
+            padding: var(--window-gap);
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        .app-shell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 0;
+            border-radius: var(--shell-radius);
+            background:
+                linear-gradient(180deg, rgba(8, 16, 29, 0.96), rgba(3, 8, 18, 0.98)),
+                rgba(4, 11, 22, 0.96);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            position: relative;
+        }
+
+        body.window-maximized .app-shell {
+            border-radius: 0;
+            border-left-color: transparent;
+            border-right-color: transparent;
+        }
+
+        .topbar, .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--section-gap);
+            padding: clamp(16px, 1.8vw, 24px) clamp(18px, 2vw, 30px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+        }
+
+        .footer {
+            border-bottom: 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.08);
+            padding-top: clamp(12px, 1.4vw, 16px);
+            padding-bottom: clamp(12px, 1.3vw, 16px);
+        }
+
+        .topbar {
+            cursor: default;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: clamp(12px, 1vw, 16px);
+            min-width: 0;
+        }
+
+        .brand-badge {
+            width: clamp(40px, 2.8vw, 48px);
+            height: clamp(40px, 2.8vw, 48px);
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background:
+                linear-gradient(135deg, rgba(245, 158, 11, 0.94), rgba(56, 189, 248, 0.84));
+            color: white;
+            box-shadow:
+                0 14px 32px rgba(15, 23, 42, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            animation: pulse 2.2s ease-in-out infinite;
+            flex: 0 0 auto;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: clamp(20px, 1.7vw, 28px);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+        }
+
+        .brand-title span {
+            color: var(--accent);
+        }
+
+        .brand-subtitle,
+        .eyebrow {
+            margin: 0;
+            font-size: clamp(9px, 0.55vw, 11px);
+            font-weight: 800;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--muted-2);
+        }
+
+        .pill {
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(5, 13, 25, 0.75);
+            color: #dbeafe;
+            font-size: clamp(9px, 0.58vw, 11px);
+            font-weight: 900;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .window-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+
+        .window-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(9, 16, 29, 0.8);
+            color: var(--muted);
+            transition: 0.16s ease;
+        }
+
+        .window-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(148, 163, 184, 0.26);
+            background: rgba(18, 30, 49, 0.9);
+            color: white;
+        }
+
+        .window-btn.close:hover {
+            border-color: rgba(251, 113, 133, 0.4);
+            background: rgba(127, 29, 29, 0.88);
+        }
+
+        .content {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .page {
+            height: 100%;
+            padding: var(--page-pad);
+        }
+
+        .grid-two {
+            height: 100%;
+            display: grid;
+            grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1.34fr);
+            gap: var(--section-gap);
+        }
+
+        .column {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--section-gap);
+        }
+
+        .card {
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: var(--card-radius);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+                rgba(5, 12, 24, 0.74);
+            padding: clamp(18px, 1.8vw, 24px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .card-title {
+            margin: 0 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: clamp(11px, 0.7vw, 13px);
+            font-weight: 900;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--accent-2);
+        }
+
+        .hardware-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .mini-card {
+            padding: 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            background: rgba(10, 19, 34, 0.82);
+        }
+
+        .label {
+            margin: 0;
+            font-size: clamp(9px, 0.56vw, 11px);
+            font-weight: 800;
+            letter-spacing: 0.26em;
+            text-transform: uppercase;
+            color: var(--muted-2);
+        }
+
+        .value {
+            margin: 8px 0 0;
+            font-size: clamp(14px, 1vw, 17px);
+            font-weight: 800;
+            color: white;
+            word-break: break-word;
+        }
+
+        .main-scroll {
+            min-height: 0;
+            overflow: auto;
+            padding-right: 6px;
+        }
+
+        .main-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .main-scroll::-webkit-scrollbar-thumb {
+            background: rgba(87, 112, 138, 0.86);
+            border-radius: 999px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .options-grid.two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(9, 17, 31, 0.72);
+            transition: 0.2s ease;
+        }
+
+        .option:hover {
+            transform: translateY(-1px);
+            border-color: rgba(245, 158, 11, 0.24);
+            background: rgba(13, 24, 41, 0.92);
+        }
+
+        .option.disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+        }
+
+        .option input {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+        }
+
+        .option h4 {
+            margin: 0;
+            font-size: clamp(14px, 0.98vw, 16px);
+            font-weight: 800;
+            color: white;
+        }
+
+        .option p {
+            margin: 6px 0 0;
+            font-size: var(--copy-size);
+            line-height: 1.55;
+            color: var(--muted);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 22px;
+            border-radius: 18px;
+            font-size: clamp(11px, 0.7vw, 13px);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: 0.18s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.98), rgba(56, 189, 248, 0.92));
+            color: #03111f;
+            box-shadow: 0 16px 34px rgba(14, 23, 42, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(11, 19, 34, 0.78);
+            color: var(--muted);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(20, 32, 51, 0.96);
+            color: white;
+        }
+
+        .step-two {
+            position: relative;
+            padding: 0;
+            background: #01050b;
+        }
+
+        .step-two-bg,
+        .step-three-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url("84f067f8b35e833c4a0dd47553dda6f2.jpg");
+            background-position: center;
+            background-size: cover;
+        }
+
+        .step-two-bg::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(180deg, rgba(2, 6, 12, 0.12), rgba(2, 6, 12, 0.48), rgba(2, 6, 12, 0.96)),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 28%);
+        }
+
+        .step-three-bg {
+            opacity: 0.22;
+            filter: blur(26px);
+            transform: scale(1.08);
+        }
+
+        .step-two-inner,
+        .step-three-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: var(--page-pad);
+        }
+
+        .step-two-inner {
+            padding: 0;
+        }
+
+        .step-two .header-stack {
+            position: absolute;
+            top: clamp(22px, 1.8vw, 30px);
+            left: clamp(20px, 1.8vw, 30px);
+            z-index: 3;
+            max-width: min(520px, 42vw);
+        }
+
+        .target-grid {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-rows: minmax(0, 1fr);
+            align-items: stretch;
+            align-content: stretch;
+            gap: 14px;
+            padding: 4px 0 0;
+        }
+
+        .step-two .target-grid {
+            position: absolute;
+            inset: 0;
+            padding: 0 clamp(8px, 0.8vw, 14px);
+            gap: clamp(10px, 0.8vw, 14px);
+        }
+
+        .target {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 24px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+                rgba(255, 255, 255, 0.04);
+            text-align: left;
+            color: white;
+            transition: 0.2s ease;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .target:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.24);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .target.active {
+            border-color: var(--border-strong);
+            background:
+                linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(56, 189, 248, 0.14)),
+                rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .target h3 {
+            margin: 10px 0 0;
+            font-size: clamp(20px, 1.55vw, 28px);
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .target p {
+            margin: 10px 0 0;
+            font-size: var(--copy-size);
+            line-height: 1.6;
+            color: rgba(226, 232, 240, 0.88);
+        }
+
+        .step-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-top: 4px;
+        }
+
+        .step-two .step-footer {
+            position: absolute;
+            left: clamp(20px, 1.8vw, 30px);
+            right: clamp(20px, 1.8vw, 30px);
+            bottom: clamp(18px, 1.6vw, 26px);
+            z-index: 2;
+            padding-top: 0;
+        }
+
+        .step-three-layout {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+
+        .profile-card {
+            margin: auto;
+            width: 100%;
+            max-width: 1040px;
+            border-radius: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+                rgba(4, 12, 23, 0.76);
+            padding: clamp(18px, 1.8vw, 26px);
+        }
+
+        .footer-left,
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            font-size: clamp(9px, 0.56vw, 11px);
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted-2);
+        }
+
+        .footer-right {
+            justify-content: flex-end;
+        }
+
+        .footer-right span,
+        .footer-left span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info-note {
+            color: var(--muted);
+            font-size: var(--copy-size);
+            line-height: 1.7;
+        }
+
+        .accent-line {
+            width: 112px;
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            margin-top: 14px;
+        }
+
+        .header-stack h2 {
+            margin: 10px 0 0;
+            font-size: var(--title-size);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            color: white;
+        }
+
+        .target-title {
+            font-size: clamp(30px, 3.2vw, 44px) !important;
+            letter-spacing: 0.16em !important;
+        }
+
+        .chip {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #bae6fd;
+            font-size: clamp(9px, 0.56vw, 11px);
+            font-weight: 900;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+        }
+
+        .cta {
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.28);
+            animation: pulse 2.2s ease-in-out infinite;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.24); }
+            50% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0.03); }
+        }
+
+        @media (max-width: 1280px) {
+            .grid-two {
+                grid-template-columns: minmax(260px, 0.92fr) minmax(0, 1.2fr);
+            }
+
+            .options-grid,
+            .options-grid.two {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 1120px) {
+            .target-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: repeat(2, minmax(0, 1fr));
+            }
+
+            .step-two .target-grid {
+                padding: 0 clamp(8px, 0.8vw, 14px);
+            }
+        }
+
+        @media (max-width: 980px), (max-height: 760px) {
+            body {
+                overflow: auto;
+            }
+
+            #root {
+                padding: 0;
+            }
+
+            .app-shell {
+                width: 100%;
+                height: auto;
+                min-height: 100vh;
+                border-radius: 0;
+            }
+
+            .grid-two,
+            .target-grid,
+            .options-grid,
+            .options-grid.two {
+                grid-template-columns: 1fr;
+            }
+
+            .target-grid {
+                grid-template-rows: none;
+                padding: 12px 0;
+            }
+
+            .target {
+                height: auto;
+                min-height: 200px;
+            }
+
+            .step-two .header-stack {
+                position: static;
+                max-width: none;
+                padding: var(--page-pad) var(--page-pad) 0;
+            }
+
+            .step-two .target-grid {
+                position: static;
+                inset: auto;
+                padding: 12px var(--page-pad);
+            }
+
+            .step-two .step-footer {
+                position: static;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                padding: 6px var(--page-pad) var(--page-pad);
+            }
+
+            .topbar,
+            .footer,
+            .step-footer,
+            .profile-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .footer-right {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .window-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .target {
+                min-height: 180px;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        const gameNames = {
+            delta: "三角洲行动",
+            pubg: "绝地求生",
+            valorant: "无畏契约",
+            cs2: "CS2"
+        };
+
+        const iconPaths = {
+            rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71.79-1.81.2-2.55L4.5 16.5z M16.5 4.5c1.5-1.26 2-5 2-5s-3.74.5-5 2c-.71.71-.79 1.81-.2 2.55l3.2 3.2z M15 15l-3.5-3.5 M8 20l2-2 M20 8l-2 2 M9 15L4 10l11-6 6 6-6 11-5-5z" />',
+            activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2" />',
+            chevronRight: '<path d="m9 18 6-6-6-6" />',
+            chevronLeft: '<path d="m15 18-6-6 6-6" />',
+            shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />',
+            zap: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />',
+            lock: '<rect width="18" height="11" x="3" y="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+            alert: '<circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" />',
+            cpu: '<rect width="16" height="16" x="4" y="4" rx="2" /><path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />',
+            monitor: '<rect width="20" height="14" x="2" y="3" rx="2" /><path d="M8 21h8M12 17v4" />',
+            minus: '<path d="M5 12h14" />',
+            square: '<rect x="6" y="6" width="12" height="12" rx="1.5" />',
+            restore: '<path d="M9 9h10v10H9z" /><path d="M5 15V5h10" />',
+            close: '<path d="M18 6L6 18M6 6l12 12" />'
+        };
+
+        const defaultState = {
+            running: false,
+            selectedGame: "valorant",
+            statusText: "等待确认...",
+            hardware: {
+                cpu: "检测中...",
+                gpu: "检测中...",
+                ramSpeed: 0,
+                memoryLabel: "检测中...",
+                hybrid: false,
+                hpetAvailable: true
+            },
+            window: {
+                maximized: false,
+                dpi: 96
+            },
+            settings: {
+                sysPower: true,
+                sysVbs: true,
+                sysVsync: true,
+                edgeSuppress: true,
+                disableHpet: false,
+                aceSuppress: true,
+                weGameSuppress: true,
+                gameAvoid: true,
+                steamSuppress: true,
+                gameFullCore: true,
+                disableEcores: false
+            }
+        };
+
+        const app = {
+            root: document.getElementById("root"),
+            step: 1,
+            isNative: Boolean(window.chrome && window.chrome.webview),
+            state: JSON.parse(JSON.stringify(defaultState))
+        };
+
+        function icon(name, size) {
+            const path = iconPaths[name] || "";
+            return '<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + "</svg>";
+        }
+
+        function isTencentGame(gameId) {
+            return gameId === "valorant" || gameId === "delta";
+        }
+
+        function mergeState(nextState) {
+            app.state = {
+                ...app.state,
+                ...nextState,
+                hardware: {
+                    ...app.state.hardware,
+                    ...(nextState.hardware || {})
+                },
+                window: {
+                    ...app.state.window,
+                    ...(nextState.window || {})
+                },
+                settings: {
+                    ...app.state.settings,
+                    ...(nextState.settings || {})
+                }
+            };
+        }
+
+        function sendMessage(message) {
+            if (app.isNative) {
+                window.chrome.webview.postMessage(message);
+            }
+        }
+
+        function sendWindowCommand(command) {
+            sendMessage("window|" + command);
+        }
+
+        function updateSetting(key, enabled) {
+            if (key === "disableHpet" && !app.state.hardware.hpetAvailable) {
+                return;
+            }
+            if (key === "disableEcores" && !app.state.hardware.hybrid) {
+                return;
+            }
+
+            app.state.settings[key] = enabled;
+            sendMessage("setting|" + key + "|" + (enabled ? "1" : "0"));
+            render();
+        }
+
+        function selectGame(gameId) {
+            app.state.selectedGame = gameId;
+            sendMessage("game|" + gameId);
+            render();
+        }
+
+        function toggleExecution() {
+            if (!app.isNative) {
+                app.state.running = !app.state.running;
+                app.state.statusText = app.state.running
+                    ? "守护已启动。游戏进程每 60 秒检查一次，平台进程每 61 秒检查一次。"
+                    : "守护已停止，原始系统设置已恢复。";
+                render();
+            }
+            sendMessage("action|execute");
+        }
+
+        function optionCard(key, title, description, disabled) {
+            const checked = !!app.state.settings[key];
+            return [
+                '<label class="option', disabled ? ' disabled' : '', '">',
+                '<input type="checkbox" data-setting="', key, '" ', checked ? "checked" : "", disabled ? " disabled" : "", " />",
+                '<div><h4>', title, disabled ? " " + icon("alert", 12) : "", '</h4><p>', description, "</p></div>",
+                "</label>"
+            ].join("");
+        }
+
+        function renderWindowControls() {
+            if (!app.isNative) {
+                return "";
+            }
+
+            return [
+                '<div class="window-controls" data-no-drag="1">',
+                '<button class="window-btn" type="button" data-window="minimize" aria-label="最小化">', icon("minus", 14), "</button>",
+                '<button class="window-btn" type="button" data-window="toggleMaximize" aria-label="', app.state.window.maximized ? "还原" : "最大化", '">',
+                app.state.window.maximized ? icon("restore", 14) : icon("square", 14),
+                "</button>",
+                '<button class="window-btn close" type="button" data-window="close" aria-label="关闭">', icon("close", 14), "</button>",
+                "</div>"
+            ].join("");
+        }
+
+        function formatScaleLabel() {
+            const dpi = Number(app.state.window.dpi) || 96;
+            return "缩放 " + Math.round(dpi / 96 * 100) + "%";
+        }
+
+        function renderStepOne() {
+            const options = [
+                ["sysPower", "卓越性能电源计划", "切换到高性能电源配置，减少降频和节能干扰。", false],
+                ["sysVbs", "关闭 VBS", "释放虚拟化安全占用的 CPU 资源。", false],
+                ["sysVsync", "关闭全局垂直同步", "降低竞技游戏中的输入延迟。", false],
+                ["edgeSuppress", "限制 Edge 后台", "避免 Edge 在后台占用额外的内存和 CPU。", false],
+                ["disableHpet", "关闭 HPET", app.state.hardware.hpetAvailable ? "在 AMD 平台上通常更适合降低中断延迟。" : "Intel 平台一般不需要改这个选项。", !app.state.hardware.hpetAvailable]
+            ];
+
+            return [
+                '<div class="page"><div class="grid-two">',
+                '<div class="column">',
+                '<section class="card">',
+                '<h3 class="card-title">', icon("activity", 16), " 硬件扫描</h3>",
+                '<div><p class="label">CPU</p><p class="value">', escapeHtml(app.state.hardware.cpu), "</p></div>",
+                '<div style="margin-top:16px"><p class="label">GPU</p><p class="value">', escapeHtml(app.state.hardware.gpu), "</p></div>",
+                '<div class="hardware-grid" style="margin-top:16px">',
+                '<div class="mini-card"><p class="label">内存频率</p><p class="value">', escapeHtml(app.state.hardware.memoryLabel), "</p></div>",
+                '<div class="mini-card"><p class="label">大小核</p><p class="value">', app.state.hardware.hybrid ? "是" : "否", "</p></div>",
+                "</div></section>",
+                '<section class="card info-note">当前界面已经启用每显示器 DPI 感知和自适应间距，1080p 到高缩放桌面都能保持更清晰的显示效果。</section>',
+                "</div>",
+                '<div class="column">',
+                '<div class="header-stack"><p class="eyebrow">步骤 01</p><h2>全局系统优化</h2></div>',
+                '<div class="main-scroll"><div class="options-grid">',
+                options.map(function(item) { return optionCard(item[0], item[1], item[2], item[3]); }).join(""),
+                '</div></div>',
+                '<div class="actions"><button class="btn btn-primary" data-step="2">下一步：选择游戏 ', icon("chevronRight", 18), "</button></div>",
+                "</div></div></div>"
+            ].join("");
+        }
+
+        function renderStepTwo() {
+            const targets = Object.keys(gameNames).map(function(gameId) {
+                const active = app.state.selectedGame === gameId;
+                return [
+                    '<button class="target', active ? " active" : "", '" data-game="', gameId, '">',
+                    '<p class="eyebrow">目标游戏</p>',
+                    "<h3>", gameNames[gameId], "</h3>",
+                    "<p>", active ? "当前已经选中这个配置。" : "点击切换到这个配置。", "</p>",
+                    "</button>"
+                ].join("");
+            }).join("");
+
+            return [
+                '<div class="page step-two">',
+                '<div class="step-two-bg"></div>',
+                '<div class="step-two-inner">',
+                '<div class="header-stack"><p class="eyebrow">步骤 02</p><h2 class="target-title">选择目标游戏</h2><div class="accent-line"></div></div>',
+                '<div class="target-grid">', targets, "</div>",
+                '<div class="step-footer">',
+                '<button class="btn btn-secondary" data-step="1">', icon("chevronLeft", 14), " 返回</button>",
+                '<button class="btn btn-primary" data-step="3">进入游戏配置</button>',
+                "</div></div></div>"
+            ].join("");
+        }
+
+        function renderStepThree() {
+            const options = isTencentGame(app.state.selectedGame)
+                ? [
+                    ["aceSuppress", "ACE 进程压制", "把 ACE 相关进程尽量压到最不重要的核心上。", false],
+                    ["weGameSuppress", "WeGame 压制", "把 browser.exe 和 wegame.exe 压到最后一个核心，并降低优先级。", false],
+                    ["gameAvoid", "游戏进程优先", "提升主游戏进程优先级，并尽量避开被压制的核心。", false],
+                    ["disableEcores", "减少 E 核干扰", app.state.hardware.hybrid ? "在大小核 CPU 上尽量把游戏固定到性能核心。" : "当前 CPU 不是大小核架构，不需要开启。", !app.state.hardware.hybrid]
+                ]
+                : [
+                    ["steamSuppress", "Steam 后台压制", "降低 Steam 与 WebHelper 后台进程的干扰。", false],
+                    ["gameFullCore", "游戏进程优先", "提升主游戏进程优先级，并尽量避开被压制的核心。", false],
+                    ["disableEcores", "减少 E 核干扰", app.state.hardware.hybrid ? "在大小核 CPU 上尽量把游戏固定到性能核心。" : "当前 CPU 不是大小核架构，不需要开启。", !app.state.hardware.hybrid]
+                ];
+
+            return [
+                '<div class="page">',
+                '<div class="step-three-bg"></div>',
+                '<div class="step-three-inner"><div class="step-three-layout">',
+                '<div class="profile-header">',
+                '<div class="brand"><div class="brand-badge">', icon("zap", 22), '</div><div><p class="eyebrow">游戏配置</p><h2 style="margin:8px 0 0;font-size:30px;font-weight:900;">', gameNames[app.state.selectedGame], "</h2></div></div>",
+                '<div class="chip">', isTencentGame(app.state.selectedGame) ? "腾讯路线" : "Steam 路线", "</div>",
+                "</div>",
+                '<div class="main-scroll"><section class="profile-card">',
+                '<h3 class="card-title">', icon("shield", 22), " 游戏专属进程控制</h3>",
+                '<div class="options-grid two">', options.map(function(item) { return optionCard(item[0], item[1], item[2], item[3]); }).join(""), "</div>",
+                "</section></div>",
+                '<div class="step-footer">',
+                '<button class="btn btn-secondary" data-step="2">返回游戏列表</button>',
+                '<button class="btn btn-primary cta" data-action="execute">', app.state.running ? "停止守护并恢复设置" : "执行优化并启动守护", "</button>",
+                "</div></div></div></div>"
+            ].join("");
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function render() {
+            document.body.classList.toggle("window-maximized", !!app.state.window.maximized);
+
+            let pageHtml = "";
+            if (app.step === 1) pageHtml = renderStepOne();
+            if (app.step === 2) pageHtml = renderStepTwo();
+            if (app.step === 3) pageHtml = renderStepThree();
+
+            app.root.innerHTML = [
+                '<div class="app-shell">',
+                '<header class="topbar" data-window-drag="1">',
+                '<div class="brand"><div class="brand-badge">', icon("rocket", 22), '</div><div><h1 class="brand-title">LYB Engine <span>2.0</span></h1><p class="brand-subtitle">', app.isNative ? "无边框自适应 WebView2 界面" : "浏览器预览模式", "</p></div></div>",
+                '<div class="topbar-right" data-no-drag="1"><div class="pill">', app.state.running ? "守护运行中" : "界面已就绪", "</div>", renderWindowControls(), "</div>",
+                "</header>",
+                '<main class="content">', pageHtml, "</main>",
+                '<footer class="footer">',
+                '<div class="footer-left"><span>', icon("lock", 12), " ", escapeHtml(app.state.statusText), "</span></div>",
+                '<div class="footer-right"><span>', icon("cpu", 12), " ", escapeHtml(app.state.hardware.memoryLabel), "</span><span>", icon("monitor", 12), " ", gameNames[app.state.selectedGame], "</span><span>", icon("activity", 12), " ", formatScaleLabel(), "</span></div>",
+                "</footer></div>"
+            ].join("");
+        }
+
+        app.root.addEventListener("click", function(event) {
+            const windowTarget = event.target.closest("[data-window]");
+            if (windowTarget) {
+                sendWindowCommand(windowTarget.getAttribute("data-window"));
+                return;
+            }
+
+            const stepTarget = event.target.closest("[data-step]");
+            if (stepTarget) {
+                app.step = Number(stepTarget.getAttribute("data-step"));
+                render();
+                return;
+            }
+
+            const gameTarget = event.target.closest("[data-game]");
+            if (gameTarget) {
+                selectGame(gameTarget.getAttribute("data-game"));
+                return;
+            }
+
+            const actionTarget = event.target.closest("[data-action]");
+            if (actionTarget && actionTarget.getAttribute("data-action") === "execute") {
+                toggleExecution();
+            }
+        });
+
+        app.root.addEventListener("mousedown", function(event) {
+            if (!app.isNative) {
+                return;
+            }
+
+            const dragTarget = event.target.closest("[data-window-drag]");
+            if (!dragTarget) {
+                return;
+            }
+
+            if (event.target.closest("button, input, label, [data-no-drag]")) {
+                return;
+            }
+
+            sendWindowCommand("drag");
+        });
+
+        app.root.addEventListener("change", function(event) {
+            const settingInput = event.target.closest("[data-setting]");
+            if (!settingInput) {
+                return;
+            }
+            updateSetting(settingInput.getAttribute("data-setting"), settingInput.checked);
+        });
+
+        if (app.isNative) {
+            window.chrome.webview.addEventListener("message", function(event) {
+                if (event.data && event.data.type === "state" && event.data.payload) {
+                    mergeState(event.data.payload);
+                    render();
+                }
+            });
+            window.chrome.webview.postMessage("ready");
+        }
+
+        render();
+    </script>
+</body>
+</html>
