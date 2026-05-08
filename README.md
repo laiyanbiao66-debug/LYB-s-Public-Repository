@@ -36,6 +36,7 @@ LYB-s-Public-Repository/
 ├── 84f067f8b35e833c4a0dd47553dda6f2.jpg  # UI 背景图资源
 ├── LYB Engine 2.0.lnk       # 快捷方式
 ├── agent.MD                 # 项目协作说明
+├── LICENSE                  # MIT 许可证
 └── README.md                # 本文件
 ```
 
@@ -165,7 +166,11 @@ LYB-s-Public-Repository/
 
 ## 📄 许可证
 
-暂无指定许可证，使用前请联系作者。
+本项目采用 **MIT License** 开源许可证。
+
+**所有人都可以自由使用、修改和分发本项目代码，包括商业用途。**
+
+详见 [LICENSE](./LICENSE) 文件。
 
 ## 👤 作者
 
@@ -174,7 +179,7 @@ GitHub: [@laiyanbiao66-debug](https://github.com/laiyanbiao66-debug)
 
 ---
 
-**最后更新**：2026-05-07  
+**最后更新**：2026-05-08  
 **项目状态**：活跃开发中
 
 有问题或建议？欢迎提交 Issue 或 Pull Request！
